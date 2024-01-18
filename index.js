@@ -10,7 +10,7 @@ app.listen(PORT, () => console.log(`[RUNNING ON PORT ${PORT}]`))
 app.get("/", (req, res) => {
   res.json("Hi there!")
 })
-
+// test
 app.get("/news", (req, res) => {
   const articles = []
   axios
