@@ -10,42 +10,65 @@ const dishes = []
 
 const sushiDishes = [
     {
-        restaurant_name: 'SUSHIHOUSE',
-        address: process.env.WEBSITESUSHIHOUSE
+        restaurant_name: process.env.RESTAURANTTWO,
+        address: process.env.WEBSITETWO
     },
     {
-        restaurant_name: 'OHMYSUSHI',
-        address: process.env.WEBSITEOHMYSUSHI
+        restaurant_name: process.env.RESTAURANTTHREE,
+        address: process.env.WEBSITETHREE
     },
-    // {
-    //     restaurant_name: 'UMEI-SUSHI',
-    //     address: process.env.WEBSITEUMSUSHI
-    // },
+    {
+        restaurant_name: process.env.RESTAURANTONE,
+        address: process.env.WEBSITEONE
+    },
 ]
 
 
 
+// const processedTitles = new Set();
+
 sushiDishes.forEach(dish => {
     axios.get(dish.address)
         .then((res) => {
-            const html = res.data
-            const $ = cheerio.load(html)
-            $("a", html).each(function () {
-                const title = $(this).text()
-                const url = $(this).attr("href")
-                const price = $(this).attr("button[data-productcategorie='Maki']");
-                if (price || title.includes('Maki')) {
+            const html = res.data;
+            const $ = cheerio.load(html);
+
+
+            // fix code
+            const price = $("span.c-product__price__amount").attr('content');
+            const title = $("h4.c-product__title").text();
+
+            if (price && title) {
+                dishes.push({
+                    title,
+                    name: dish.restaurant_name,
+                    source: dish.address,
+                    price
+                });
+            }
+            //fix code
+
+            $("button[data-productnaam][data-prijs]", html).each(function () {
+                const title = $(this).attr('data-productnaam');
+                const price = $(this).attr('data-prijs');
+                if (price && (/\bzalm\b/i.test(title) || /\bsalmon\b/i.test(title)) && !title.includes('Mix')) {
+                    const existingDishIndex = dishes.findIndex(item => item.title === title);
+                    if (existingDishIndex !== -1) {
+                        dishes.splice(existingDishIndex, 1);
+                    }
                     dishes.push({
                         title,
-                        url,
-                        source: dish.restaurant_name,
+                        name: dish.restaurant_name,
+                        source: dish.address,
                         price
-                    })
+                    });
                 }
-            })
+            });
         })
-        .catch((err) => console.log(err))
-})
+        .catch((err) => console.log(err));
+});
+
+
 
 app.listen(PORT, () => console.log(`[RUNNING ON PORT ${PORT}]`))
 
@@ -61,39 +84,3 @@ res.json(dishes)
 })
 
 
-
-// axios
-//   .get(process.env.WEBSITE)
-//   .then((response) => {
-//     const html = response.data
-//     const $ = cheerio.load(html)
-//     console.log(html)
-//     $("a", html).each(function () {
-//       const title = $(this).text()
-//       const url = $(this).attr("href")
-//       if (title.includes(process.env.KEYWORD)) {
-//         articles.push({
-//           title,
-//           url,
-//         })
-//       }
-//     })
-//     res.json(articles)
-//     console.log(articles)
-//   })
-//   .catch((err) => console.log(err))
-
-/* $('a.most-read-post__title', html).each(function() {
-        const title = $(this).text()
-        const url = $(this).attr('href')
-        if (title.toLowerCase().includes('amsterdam')) {
-          articles.push({
-            title,
-            url
-          })
-        }
-      })
-      res.json(articles)
-      console.log(articles)
-    }).catch((err) => console.log(err))
-}) */
